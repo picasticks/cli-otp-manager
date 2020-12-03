@@ -39,7 +39,7 @@ To add a new OTP key:
 otp -a
 ```
 ## Customizing
-It's a shell script, easy to customize. For example, by default it stores encrypted keys in `~/.ssh/oath` (don't ask, it made sense to me at the time!) but you can change that.
+It's a shell script, easy to customize. For example, by default it stores encrypted keys in `~/.config/oath` (or whatever `$XDG_CONFIG_HOME` is set to, if it's not `~/.config`) but you can change that.
 
 ## Security considerations
 Using `oathtool` there's currently no way to pass the secret key except as a command-line parameter. So, it will show briefly in the process table &ndash; in `/proc` and via `top`, `ps` etc. [See this thread for a longer explanation](https://gitlab.com/oath-toolkit/oath-toolkit/-/issues/6). If you're on a multiuser system this risk may concern you. One way to mitigate it: the Linux kernel has the `hidepid` mount option, so you can [hide processes](https://man7.org/linux/man-pages/man5/proc.5.html) from other users by mounting `/proc` with the `hidepid=2` mount option.

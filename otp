@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-DIR="$HOME/.ssh/oath"
 GPG="gpg2"
 DELAY=3
+DIR="$HOME/.config/oath"
+if [ -n "$XDG_CONFIG_HOME" ]; then DIR="$XDG_CONFIG_HOME/oath"; fi
 
 if [ "$1" == "-a" ]; then
 
@@ -46,7 +47,7 @@ $(basename "$0") [nickname]
 
 	if [ -d "$DIR" ]; then
 		echo "Stored OTP keys:"
-		basename -a $(find "$DIR" -type f) | sed 's/^/\'$'\t/'
+		basename -a $(find "$DIR/" -type f) | sed 's/^/\'$'\t/'
 		echo
 	fi
 
