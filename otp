@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+DIR="$HOME/.ssh/oath"
+GPG="gpg2"
+DELAY=3
+
+if [ "$1" == "-a" ]; then
+
+	# Add new TOTP
+	while [ "$name" == "" ]; do
+		echo -n "Enter nickname (e.g. a domain name) for this key: "
+		read name
+		if [ -e "$DIR/$name" ]; then
+			echo Sorry, file \"$DIR/$name\" already exists.
+			name=""
+		fi
+	done
+	echo -n "Enter OTP secret key value: "
+	read secret
+	if [ ! -e "$DIR" ]; then
+		mkdir -p "$DIR" && chmod 700 "$DIR" || exit 1
+	fi
+	$GPG --output "$DIR/$name" -se --default-recipient-self <<< """$secret""" && chmod 600 "$DIR/$name"
+
+elif [ -f "$DIR/$1" ]; then
+
+	# Print current TOTP and copy to system clipboard
+	while [ "$secret" == "" ]; do
+		secret=$($GPG -d "$DIR/$1" 2>/dev/null)
+	done
+	if which xsel > /dev/null; then
+		oathtool -b --now="$DELAY seconds" --totp "$secret" | tee >(tr -d '\n' | xsel -b) && echo -ne "(Copied to clipboard. " || exit 1
+	elif which xclip > /dev/null; then
+		oathtool -b --now="$DELAY seconds" --totp "$secret" | tee >(tr -d '\n' | xclip -sel clip) && echo -ne "(Copied to clipboard. " || exit 1
+	else
+		oathtool -b --now="$DELAY seconds" --totp "$secret" && echo -ne "(" || exit 1
+	fi
+	echo "Expires in $((30 + $DELAY - $(date --date="$DELAY seconds" +%S | sed 's/^0//') % 30)) seconds)"
+
+else
+
+	# Print instructions and list stored TOTPs
+	echo "Syntax:
+$(basename "$0") [nickname]
+"
+
+	if [ -d "$DIR" ]; then
+		echo "Stored OTP keys:"
+		basename -a $(find "$DIR" -type f) | sed 's/^/\'$'\t/'
+		echo
+	fi
+
+	echo "To add a new OTP key:
+$(basename "$0") -a"
+
+fi
+
+# vim: tabstop=4:shiftwidth=4:noexpandtab
